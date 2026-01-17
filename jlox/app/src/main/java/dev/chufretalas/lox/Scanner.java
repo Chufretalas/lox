@@ -103,6 +103,8 @@ public class Scanner {
                 if (match('/')) {
                     // A comment goes until the end of the line.
                     while (peek() != '\n' && !isAtEnd()) advance();
+                } else if (match('*')) {
+                    multilineComment();
                 } else {
                     // Just a normal slash for division
                     addToken(SLASH);
@@ -176,6 +178,25 @@ public class Scanner {
         // TODO: Add scape characters
         String value = source.substring(start + 1, current - 1);
         addToken(STRING, value);
+    }
+
+    private void multilineComment() {
+        while (!isAtEnd()) {
+            if (peek() == '*' && peekNext() == '/') {
+                // Consume the closing */
+                advance();
+                advance();
+                return;
+            }
+
+            if (peek() == '\n') {
+                line++;
+            }
+
+            advance();
+        }
+
+        Lox.error(line, "Unterminated comment.");
     }
 
     private boolean match(char expected) {
