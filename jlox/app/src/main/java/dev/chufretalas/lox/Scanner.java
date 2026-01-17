@@ -181,12 +181,29 @@ public class Scanner {
     }
 
     private void multilineComment() {
+        int depth = 1;
         while (!isAtEnd()) {
+            // Started a nested comment
+            if (peek() == '/' && peekNext() == '*') {
+                depth++;
+                // Consume the opening /*
+                advance();
+                advance();
+                continue;
+            }
+
             if (peek() == '*' && peekNext() == '/') {
-                // Consume the closing */
+                // Consume the */
                 advance();
                 advance();
-                return;
+
+                // did it finish all nested comments?
+                if (--depth == 0) {
+                    return;
+                }
+
+                // It just closed a nested comment
+                continue;
             }
 
             if (peek() == '\n') {
