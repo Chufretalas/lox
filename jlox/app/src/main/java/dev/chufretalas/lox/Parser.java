@@ -3,6 +3,7 @@ package dev.chufretalas.lox;
 import static dev.chufretalas.lox.TokenType.*;
 
 import java.util.List;
+import java.util.function.Function;
 
 // Recursive Descent: always let the higher precedence try first
 class Parser {
@@ -24,6 +25,7 @@ class Parser {
         }
     }
 
+    // Production matchers
     // expression → comma_expression ;
     private Expr expression() {
         return commaExpression();
@@ -108,11 +110,44 @@ class Parser {
 
     // unary → ( "!" | "-" ) unary | primary ;
     private Expr unary() {
+        // Valid unaries
         if (match(BANG, MINUS)) {
             Token operator = previous();
             Expr right = unary();
             return new Expr.Unary(operator, right);
         }
+
+        // Error productions
+        // operators at the start of the expression
+        // Match the operator and consume the rest of the expected expression
+        matchLeadingOperatorErrorProduction(() -> ternary(), COMMA);
+        matchLeadingOperatorErrorProduction(
+            () -> {
+                expression();
+                consume(COLON, "Expect ':' after ?.");
+                ternary();
+            },
+            QUESTION
+        );
+        matchLeadingOperatorErrorProduction(
+            () -> comparison(),
+            BANG_EQUAL,
+            EQUAL_EQUAL
+        );
+        matchLeadingOperatorErrorProduction(
+            () -> term(),
+            GREATER,
+            GREATER_EQUAL,
+            LESS,
+            LESS_EQUAL
+        );
+        matchLeadingOperatorErrorProduction(() -> factor(), PLUS);
+        matchLeadingOperatorErrorProduction(() -> unary(), SLASH, STAR);
+        matchLeadingOperatorErrorProduction(
+            () -> ternary(),
+            "Unexpected ':'. Did you forget the '?' in a ternary expression?",
+            COLON
+        );
 
         return primary();
     }
@@ -136,6 +171,7 @@ class Parser {
         throw error(peek(), "Expect expression.");
     }
 
+    // Utilities
     private boolean match(TokenType... types) {
         for (TokenType type : types) {
             if (check(type)) {
@@ -178,6 +214,32 @@ class Parser {
     private ParseError error(Token token, String message) {
         Lox.error(token, message);
         return new ParseError();
+    }
+
+    // Error production matchers
+    private void matchLeadingOperatorErrorProduction(
+        Runnable consumer,
+        TokenType... types
+    ) {
+        matchLeadingOperatorErrorProduction(
+            consumer,
+            "Missing left-hand operand.",
+            types
+        );
+    }
+
+    private void matchLeadingOperatorErrorProduction(
+        Runnable consumer,
+        String errorMessage,
+        TokenType... types
+    ) {
+        if (match(types)) {
+            Token operator = previous();
+
+            consumer.run();
+
+            throw error(operator, errorMessage);
+        }
     }
 
     // Get to the next statement if a sintax error occurs (Panic mode strategy)

@@ -3,29 +3,26 @@
 ```
 
 ```bash
-./gradlew --console=plain run -Dorg.gradle.debug=true
-```
-
-```bash
 javac app/src/main/java/dev/chufretalas/tool/GenerateAst.java && java -cp app/src/main/java/ dev.chufretalas.tool.GenerateAst app/src/main/java/dev/chufretalas/lox
 ```
 
 # jlox grammar V1
-expression     → literal
-               | unary
-               | binary
-               | grouping ;
 
-literal        → NUMBER | STRING | "true" | "false" | "nil" ;
+expression → literal
+| unary
+| binary
+| grouping ;
 
-grouping       → "(" expression ")" ;
+literal → NUMBER | STRING | "true" | "false" | "nil" ;
 
-unary          → ( "-" | "!" ) expression ;
+grouping → "(" expression ")" ;
 
-binary         → expression operator expression ;
+unary → ( "-" | "!" ) expression ;
 
-operator       → "==" | "!=" | "<" | "<=" | ">" | ">="
-               | "+"  | "-"  | "*" | "/" ;
+binary → expression operator expression ;
+
+operator → "==" | "!=" | "<" | "<=" | ">" | ">="
+| "+" | "-" | "\*" | "/" ;
 
 # jlox grammar V2
 
@@ -41,4 +38,16 @@ unary            → ( "!" | "-" ) unary
                   | primary ;
 primary          → NUMBER | STRING | "true" | "false" | "nil"
                   | "(" expression ")" ;
+```
+
+## Error productions
+
+```
+e_leading_operator → ( "," ternary)
+                    | ( "?" expression ":" ternary )
+                    | ( ":" ternary )
+                    | ( "!=" | "==" ) comparison
+                    | ( ( ">" | ">=" | "<" | "<=" ) term )
+                    | (  "+" factor )
+                    | ( ( "/" | "*" ) unary );
 ```
