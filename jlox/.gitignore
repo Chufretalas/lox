@@ -1,8 +1,36 @@
-# Ignore Gradle project-specific cache directory
-.gradle
+# --- Gradle ---
+.gradle/
+build/
+bin/
+out/
+gradle/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
 
-# Ignore Gradle build output directory
-build
-bin
-
+# --- Java ---
 *.class
+*.log
+*.ctxt
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# --- Eclipse / Zed (JDT LS) ---
+.classpath
+.project
+.settings/
+.factorypath
+
+# --- IntelliJ IDEA (Just in case) ---
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# --- OS Specific ---
+.DS_Store
+Thumbs.db
