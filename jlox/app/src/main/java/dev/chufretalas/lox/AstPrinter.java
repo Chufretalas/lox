@@ -1,9 +1,21 @@
 package dev.chufretalas.lox;
 
+import dev.chufretalas.lox.Expr.Ternary;
+
 class AstPrinter implements Expr.Visitor<String> {
 
     String print(Expr expr) {
         return expr.accept(this);
+    }
+
+    @Override
+    public String visitTernaryExpr(Ternary expr) {
+        return parenthesize(
+            "?:",
+            expr.condition,
+            expr.trueExpr,
+            expr.falseExpr
+        );
     }
 
     @Override

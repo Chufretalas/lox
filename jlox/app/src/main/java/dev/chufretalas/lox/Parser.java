@@ -4,7 +4,7 @@ import static dev.chufretalas.lox.TokenType.*;
 
 import java.util.List;
 
-// Recursive Descent: always let the higher precedence try first 
+// Recursive Descent: always let the higher precedence try first
 class Parser {
 
     private static class ParseError extends RuntimeException {}
@@ -29,17 +29,33 @@ class Parser {
         return commaExpression();
     }
 
-    // comma_expression → equality ( "," equality)* ;
+    // comma_expression → ternary ( "," ternary)* ;
     private Expr commaExpression() {
-        Expr expr = equality();
+        Expr expr = ternary();
         while (match(COMMA)) {
             Token operator = previous();
-            Expr right = equality();
+            Expr right = ternary();
             expr = new Expr.Binary(expr, operator, right);
         }
         return expr;
     }
-    
+
+    // ternary → equality ( "?" expression ":" ternary )? ;
+    private Expr ternary() {
+        Expr expr = equality();
+
+        if (match(QUESTION)) {
+            Expr trueExpr = expression();
+
+            consume(COLON, "Expect ':' after ?.");
+
+            Expr falseExpr = ternary();
+            expr = new Expr.Ternary(expr, trueExpr, falseExpr);
+        }
+
+        return expr;
+    }
+
     // equality → comparison ( ( "!=" | "==" ) comparison )* ;
     private Expr equality() {
         Expr expr = comparison();

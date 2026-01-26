@@ -85,6 +85,12 @@ public class Scanner {
             case '*':
                 addToken(STAR);
                 break;
+            case '?':
+                addToken(QUESTION);
+                break;
+            case ':':
+                addToken(COLON);
+                break;
             // 1-2 character Lexemes, checks the next character before adding a token
             case '!':
                 addToken(match('=') ? BANG_EQUAL : BANG);

@@ -9,6 +9,16 @@ class AstRpnPrinter implements Expr.Visitor<String> {
     }
 
     @Override
+    public String visitTernaryExpr(Expr.Ternary expr) {
+        return parenthesize(
+            "?:",
+            expr.condition,
+            expr.trueExpr,
+            expr.falseExpr
+        );
+    }
+
+    @Override
     public String visitBinaryExpr(Expr.Binary expr) {
         return parenthesize(expr.operator.lexeme, expr.left, expr.right);
     }

@@ -31,7 +31,8 @@ operator       → "==" | "!=" | "<" | "<=" | ">" | ">="
 
 ```
 expression       → comma_expression ;
-comma_expression → equality ( "," equality)* ;
+comma_expression → ternary ( "," ternary)* ;
+ternary          → equality ( "?" expression ":" ternary )? ;
 equality         → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison       → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term             → factor ( ( "-" | "+" ) factor )* ;
