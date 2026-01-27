@@ -4,6 +4,8 @@ import java.util.List;
 
 abstract class Expr {
 
+    abstract <R> R accept(Visitor<R> visitor);
+
     interface Visitor<R> {
         R visitTernaryExpr(Ternary expr);
         R visitBinaryExpr(Binary expr);
@@ -29,7 +31,7 @@ abstract class Expr {
         final Expr trueExpr;
         final Expr falseExpr;
     }
-    
+
     static class Binary extends Expr {
 
         Binary(Expr left, Token operator, Expr right) {
@@ -91,6 +93,4 @@ abstract class Expr {
         final Token operator;
         final Expr right;
     }
-
-    abstract <R> R accept(Visitor<R> visitor);
 }
