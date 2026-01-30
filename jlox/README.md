@@ -3,6 +3,10 @@
 ```
 
 ```bash
+./gradlew --console=plain run --args='../../sample_scripts/script.lox'
+```
+
+```bash
 javac app/src/main/java/dev/chufretalas/tool/GenerateAst.java && java -cp app/src/main/java/ dev.chufretalas.tool.GenerateAst app/src/main/java/dev/chufretalas/lox
 ```
 
@@ -27,17 +31,32 @@ operator → "==" | "!=" | "<" | "<=" | ">" | ">="
 # jlox grammar V2
 
 ```
+program          → declaration* EOF ;
+
+declaration      → varDecl | statement ;
+
+varDecl          → "var" IDENTIFIER ( "=" expression )? ";" ;
+
+statement        → exprStmt | printStmt | block ;
+
+block            → "{" declaration* "}" ;
+
+printStmt        → "print" expression ";" ;
+exprStmt         → expression ";" ;
+
 expression       → comma_expression ;
-comma_expression → ternary ( "," ternary)* ;
+comma_expression → assignment ( "," assignment )* ;
+assignment       → IDENTIFIER "=" assignment | ternary ;
 ternary          → equality ( "?" expression ":" ternary )? ;
 equality         → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison       → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term             → factor ( ( "-" | "+" ) factor )* ;
 factor           → unary ( ( "/" | "*" ) unary )* ;
-unary            → ( "!" | "-" ) unary
-                  | primary ;
-primary          → NUMBER | STRING | "true" | "false" | "nil"
-                  | "(" expression ")" ;
+unary            → ( "!" | "-" ) unary | primary ;
+primary          → "true" | "false" | "nil"
+                  | NUMBER | STRING
+                  | "(" expression ")"
+                  | IDENTIFIER ;
 ```
 
 ## Error productions
