@@ -14,8 +14,16 @@ class Parser {
     private final List<Token> tokens;
     private int current = 0;
 
+    private final boolean replMode;
+
     Parser(List<Token> tokens) {
         this.tokens = tokens;
+        this.replMode = false;
+    }
+
+    Parser(List<Token> tokens, boolean replMode) {
+        this.tokens = tokens;
+        this.replMode = replMode;
     }
 
     List<Stmt> parse() {
@@ -70,20 +78,25 @@ class Parser {
     // exprStmt → expression ";" ;
     private Stmt expressionStatement() {
         Expr expr = expression();
+
+        if (replMode && isAtEnd()) {
+            return new Stmt.Print(expr);
+        }
+
         consume(SEMICOLON, "Expect ';' after expression.");
         return new Stmt.Expression(expr);
     }
-    
+
     //block → "{" declaration* "}" ;
     private List<Stmt> block() {
-      List<Stmt> statements = new ArrayList<>();
-  
-      while (!check(RIGHT_BRACE) && !isAtEnd()) {
-        statements.add(declaration());
-      }
-  
-      consume(RIGHT_BRACE, "Expect '}' after block.");
-      return statements;
+        List<Stmt> statements = new ArrayList<>();
+
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(declaration());
+        }
+
+        consume(RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
     }
 
     // Production matchers
