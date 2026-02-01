@@ -1,0 +1,23 @@
+var square = fun(x) { 
+  return x * x; 
+};
+print square(3); // Expect 9
+
+(fun(a) { 
+  print a; 
+})("Hello"); // Expect Hello
+
+// 3. Callback
+fun times(n, callback) {
+  for (var i = 0; i < n; i = i + 1) {
+    callback(i);
+  }
+}
+
+times(3, fun(n) {
+  print n;
+});
+// Expect:
+// 0
+// 1
+// 2

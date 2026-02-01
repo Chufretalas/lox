@@ -21,6 +21,7 @@ public class GenerateAst {
                 "Ternary : Expr condition, Expr trueExpr, Expr falseExpr",
                 "Binary : Expr left, Token operator, Expr right",
                 "Call : Expr callee, Token paren, List<Expr> arguments",
+                "Function : List<Token> params, List<Stmt> body", // Anonymous functions
                 "Grouping : Expr expression",
                 "Literal : Object value",
                 "Logical : Expr left, Token operator, Expr right",

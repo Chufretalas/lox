@@ -1,11 +1,15 @@
 package dev.chufretalas.lox;
 
+import dev.chufretalas.lox.Expr.Function;
 import dev.chufretalas.lox.Expr.Grouping;
 import dev.chufretalas.lox.Expr.Literal;
 import dev.chufretalas.lox.Expr.Ternary;
 import dev.chufretalas.lox.Stmt.Break;
 import dev.chufretalas.lox.Stmt.Continue;
 import dev.chufretalas.lox.Stmt.For;
+
+import static dev.chufretalas.lox.TokenType.IDENTIFIER;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +21,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     final Environment globals = new Environment(); // This guy stays fixed to the outermost environment
     private Environment environment = globals; // This guys changes with scope
+    
+    static private int anonFunctionCounter = 0; 
 
     Interpreter() {
         globals.define(
@@ -208,6 +214,19 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
 
         return evaluate(expr.falseExpr);
+    }
+    
+    @Override
+    public Object visitFunctionExpr(Function expr) {
+        String name = "anonFn" + (anonFunctionCounter++);
+        
+        Token nameToken = new Token(IDENTIFIER, name, null, 0);
+        
+        Stmt.Function functionStmt = new Stmt.Function(nameToken, expr.params, expr.body);
+        
+        LoxFunction function = new LoxFunction(functionStmt, environment);
+        
+        return function;
     }
 
     private void checkNumberOperand(Token operator, Object operand) {

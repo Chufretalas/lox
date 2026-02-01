@@ -79,7 +79,9 @@ call             → primary ( "(" arguments? ")" )* ;
 primary          → "true" | "false" | "nil"
                   | NUMBER | STRING
                   | "(" expression ")"
-                  | IDENTIFIER ;
+                  | IDENTIFIER
+                  | anonFunction ;
+anonFunction     → "fun" "(" parameters? ")" block ;
                   
 arguments        → assignment ( "," assignment )* ;
 ```
