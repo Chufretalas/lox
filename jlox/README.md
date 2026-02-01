@@ -33,23 +33,31 @@ operator → "==" | "!=" | "<" | "<=" | ">" | ">="
 ```
 program          → declaration* EOF ;
 
-declaration      → varDecl | statement ;
+declaration      → funDecl | varDecl | statement ;
+
+funDecl          → "fun" function ;
+
+function         → IDENTIFIER "(" parameters? ")" block ;
+
+parameters       → IDENTIFIER ( "," IDENTIFIER )* ;
 
 varDecl          → "var" IDENTIFIER ( "=" expression )? ";" ;
 
-statement        → exprStmt | forStmt | ifStmt | printStmt | whileStmt | block ;
+statement        → exprStmt | forStmt | ifStmt | printStmt | returnStmt | whileStmt | block ;
 
 ifStmt           → "if" "(" expression ")" statement ( "else" statement )? ;
 
 whileStmt        → "while" "(" expression ")" statement ;
 
-forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
-                 expression? ";"
-                 expression? ")" statement ;
+forStmt          → "for" "(" ( varDecl | exprStmt | ";" )
+                   expression? ";"
+                   expression? ")" statement ;
 
 block            → "{" declaration* "}" ;
 
 printStmt        → "print" expression ";" ;
+
+returnStmt       → "return" expression? ";" ;
 
 breakStmt        → "break" ";"
 continueStmt     → "continue" ";"
@@ -66,11 +74,14 @@ equality         → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison       → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term             → factor ( ( "-" | "+" ) factor )* ;
 factor           → unary ( ( "/" | "*" ) unary )* ;
-unary            → ( "!" | "-" ) unary | primary ;
+unary            → ( "!" | "-" ) unary | call ;
+call             → primary ( "(" arguments? ")" )* ;
 primary          → "true" | "false" | "nil"
                   | NUMBER | STRING
                   | "(" expression ")"
                   | IDENTIFIER ;
+                  
+arguments        → assignment ( "," assignment )* ;
 ```
 
 ## Error productions
