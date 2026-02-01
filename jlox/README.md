@@ -50,6 +50,10 @@ forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
 block            → "{" declaration* "}" ;
 
 printStmt        → "print" expression ";" ;
+
+breakStmt        → "break" ";"
+continueStmt     → "continue" ";"
+
 exprStmt         → expression ";" ;
 
 expression       → comma_expression ;

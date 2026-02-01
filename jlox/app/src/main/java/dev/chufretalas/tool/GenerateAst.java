@@ -36,7 +36,10 @@ public class GenerateAst {
                 "If : Expr condition, Stmt thenBranch, Stmt elseBranch",
                 "Print : Expr expression",
                 "Var : Token name, Expr initializer",
-                "While : Expr condition, Stmt body"
+                "While : Expr condition, Stmt body",
+                "For : Stmt initializer, Expr condition, Expr increment, Stmt body",
+                "Break",
+                "Continue"
             )
         );
     }
@@ -57,9 +60,16 @@ public class GenerateAst {
         writer.println("abstract class " + baseName + " {");
         defineVisitor(writer, baseName, types);
         for (String type : types) {
-            String className = type.split(":")[0].trim();
-            String fields = type.split(":")[1].trim();
-            defineType(writer, baseName, className, fields);
+            if (type.contains(":")) {
+                String className = type.split(":")[0].trim();
+                String fields = type.split(":")[1].trim();
+                defineType(writer, baseName, className, fields);
+            } else {
+                // Argumentless (like break and continue)
+                String className = type.trim();
+                String fields = "";
+                defineType(writer, baseName, className, fields);
+            }
         }
         // The base accept() method.
         writer.println();
@@ -84,8 +94,10 @@ public class GenerateAst {
         // Store parameters in fields.
         String[] fields = fieldList.split(", ");
         for (String field : fields) {
-            String name = field.split(" ")[1];
-            writer.println(" this." + name + " = " + name + ";");
+            if (!field.isBlank()) {
+                String name = field.split(" ")[1];
+                writer.println(" this." + name + " = " + name + ";");
+            }
         }
 
         writer.println(" }");
@@ -102,7 +114,9 @@ public class GenerateAst {
         // Fields.
         writer.println();
         for (String field : fields) {
-            writer.println(" final " + field + ";");
+            if (!field.isBlank()) {
+                writer.println(" final " + field + ";");
+            }
         }
 
         writer.println(" }");

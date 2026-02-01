@@ -3,9 +3,16 @@ package dev.chufretalas.lox;
 import dev.chufretalas.lox.Expr.Grouping;
 import dev.chufretalas.lox.Expr.Literal;
 import dev.chufretalas.lox.Expr.Ternary;
+import dev.chufretalas.lox.Stmt.Break;
+import dev.chufretalas.lox.Stmt.Continue;
+import dev.chufretalas.lox.Stmt.For;
 import java.util.List;
 
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+
+    private class BreakException extends RuntimeException {}
+
+    private class ContinueException extends RuntimeException {}
 
     private Environment environment = new Environment();
 
@@ -247,19 +254,59 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         environment.define(stmt.name.lexeme, value);
         return null;
     }
-    
+
     @Override
-     public Void visitWhileStmt(Stmt.While stmt) {
-       while (isTruthy(evaluate(stmt.condition))) {
-         execute(stmt.body);
-       }
-       return null;
-     }
+    public Void visitWhileStmt(Stmt.While stmt) {
+        while (isTruthy(evaluate(stmt.condition))) {
+            try {
+                execute(stmt.body);
+            } catch (BreakException e) {
+                // Taking advantage of Java's exception system to implement break and continue
+                break;
+            } catch (ContinueException e) {
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitForStmt(For stmt) {
+        if (stmt.initializer != null) {
+            execute(stmt.initializer);
+        }
+
+        while (isTruthy(evaluate(stmt.condition))) {
+            try {
+                execute(stmt.body);
+                if (stmt.increment != null) {
+                    evaluate(stmt.increment);
+                }
+            } catch (BreakException e) {
+                // Taking advantage of Java's exception system to implement break and continue
+                break;
+            } catch (ContinueException e) {
+                if (stmt.increment != null) {
+                    evaluate(stmt.increment);
+                }
+            }
+        }
+        return null;
+    }
 
     @Override
     public Object visitAssignExpr(Expr.Assign expr) {
         Object value = evaluate(expr.value);
         environment.assign(expr.name, value);
         return value;
+    }
+
+    @Override
+    public Void visitBreakStmt(Break stmt) throws BreakException {
+        throw new BreakException();
+    }
+
+    @Override
+    public Void visitContinueStmt(Continue stmt) throws ContinueException {
+        throw new ContinueException();
     }
 }

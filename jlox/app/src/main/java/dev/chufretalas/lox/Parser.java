@@ -5,7 +5,6 @@ import static dev.chufretalas.lox.TokenType.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Function;
 
 // Recursive Descent: always let the higher precedence try first
 class Parser {
@@ -14,6 +13,7 @@ class Parser {
 
     private final List<Token> tokens;
     private int current = 0;
+    private int loopDepth = 0;
 
     private final boolean replMode;
 
@@ -66,13 +66,20 @@ class Parser {
         consume(LEFT_PAREN, "Expect '(' after 'while'.");
         Expr condition = expression();
         consume(RIGHT_PAREN, "Expect ')' after condition.");
-        Stmt body = statement();
 
-        return new Stmt.While(condition, body);
+        try {
+            loopDepth++;
+            Stmt body = statement();
+            return new Stmt.While(condition, body);
+        } finally {
+            loopDepth--;
+        }
     }
 
     // statement → exprStmt | printStmt ;
     private Stmt statement() {
+        if (match(BREAK)) return breakStatement();
+        if (match(CONTINUE)) return continueStatement();
         if (match(FOR)) return forStatement();
         if (match(IF)) return ifStatement();
         if (match(PRINT)) return printStatement();
@@ -80,6 +87,24 @@ class Parser {
         if (match(LEFT_BRACE)) return new Stmt.Block(block());
 
         return expressionStatement();
+    }
+
+    // breakStmt → "break" ";"
+    private Stmt breakStatement() {
+        if (loopDepth == 0) {
+            throw error(previous(), "Must be inside a loop to use 'break'.");
+        }
+        consume(SEMICOLON, "Expect ';' after 'break'.");
+        return new Stmt.Break();
+    }
+
+    // continueStmt → "continue" ";"
+    private Stmt continueStatement() {
+        if (loopDepth == 0) {
+            throw error(previous(), "Must be inside a loop to use 'continue'.");
+        }
+        consume(SEMICOLON, "Expect ';' after 'continue'.");
+        return new Stmt.Continue(); // Make sure you have this Stmt defined!
     }
 
     // forStmt → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;
@@ -101,29 +126,26 @@ class Parser {
         }
         consume(SEMICOLON, "Expect ';' after loop condition.");
 
+        if (condition == null) {
+            // Always true condition in case it is missing
+            condition = new Expr.Literal(true);
+        }
+
         Expr increment = null;
         if (!check(RIGHT_PAREN)) {
             increment = expression();
         }
         consume(RIGHT_PAREN, "Expect ')' after for clauses.");
 
-        Stmt body = statement();
-
-        // Desugaring it into a while loop
-        if (increment != null) {
-            body = new Stmt.Block(
-                Arrays.asList(body, new Stmt.Expression(increment))
-            );
+        Stmt body;
+        try {
+            loopDepth++;
+            body = statement();
+        } finally {
+            loopDepth--;
         }
 
-        if (condition == null) condition = new Expr.Literal(true);
-        body = new Stmt.While(condition, body);
-
-        if (initializer != null) {
-            body = new Stmt.Block(Arrays.asList(initializer, body));
-        }
-
-        return body;
+        return new Stmt.For(initializer, condition, increment, body);
     }
 
     // ifStmt → "if" "(" expression ")" statement ( "else" statement )? ;
