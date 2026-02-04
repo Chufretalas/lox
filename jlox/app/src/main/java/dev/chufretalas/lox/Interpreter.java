@@ -1,5 +1,7 @@
 package dev.chufretalas.lox;
 
+import static dev.chufretalas.lox.TokenType.IDENTIFIER;
+
 import dev.chufretalas.lox.Expr.Function;
 import dev.chufretalas.lox.Expr.Grouping;
 import dev.chufretalas.lox.Expr.Literal;
@@ -7,11 +9,10 @@ import dev.chufretalas.lox.Expr.Ternary;
 import dev.chufretalas.lox.Stmt.Break;
 import dev.chufretalas.lox.Stmt.Continue;
 import dev.chufretalas.lox.Stmt.For;
-
-import static dev.chufretalas.lox.TokenType.IDENTIFIER;
-
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
@@ -21,8 +22,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     final Environment globals = new Environment(); // This guy stays fixed to the outermost environment
     private Environment environment = globals; // This guys changes with scope
-    
-    static private int anonFunctionCounter = 0; 
+
+    private final Map<Expr, Integer> locals = new HashMap<>(); // Stores the environment depth of varibles, so that they aways go to the correct environment
+
+    private static int anonFunctionCounter = 0; // For naming anonymous functions
 
     Interpreter() {
         globals.define(
@@ -102,7 +105,16 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Object visitVariableExpr(Expr.Variable expr) {
-        return environment.get(expr.name);
+        return lookUpVariable(expr.name, expr);
+    }
+
+    private Object lookUpVariable(Token name, Expr expr) {
+        Integer distance = locals.get(expr);
+        if (distance != null) {
+            return environment.getAt(distance, name.lexeme);
+        } else {
+            return globals.get(name);
+        }
     }
 
     @Override
@@ -215,17 +227,21 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
         return evaluate(expr.falseExpr);
     }
-    
+
     @Override
     public Object visitFunctionExpr(Function expr) {
         String name = "anonFn" + (anonFunctionCounter++);
-        
+
         Token nameToken = new Token(IDENTIFIER, name, null, 0);
-        
-        Stmt.Function functionStmt = new Stmt.Function(nameToken, expr.params, expr.body);
-        
+
+        Stmt.Function functionStmt = new Stmt.Function(
+            nameToken,
+            expr.params,
+            expr.body
+        );
+
         LoxFunction function = new LoxFunction(functionStmt, environment);
-        
+
         return function;
     }
 
@@ -277,6 +293,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     private void execute(Stmt stmt) {
         stmt.accept(this);
+    }
+
+    void resolve(Expr expr, int depth) {
+        locals.put(expr, depth);
     }
 
     void executeBlock(List<Stmt> statements, Environment environment) {
@@ -389,7 +409,14 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitAssignExpr(Expr.Assign expr) {
         Object value = evaluate(expr.value);
-        environment.assign(expr.name, value);
+
+        Integer distance = locals.get(expr);
+        if (distance != null) {
+            environment.assignAt(distance, expr.name, value);
+        } else {
+            globals.assign(expr.name, value);
+        }
+
         return value;
     }
 
