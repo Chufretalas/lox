@@ -13,11 +13,24 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         FUNCTION,
     }
 
+    private static class VarStatus {
+
+        Token varToken;
+        int numReferences;
+        boolean resolved;
+
+        public VarStatus(Token varToken) {
+            this.varToken = varToken;
+            this.numReferences = 0;
+            this.resolved = false;
+        }
+    }
+
     private final Interpreter interpreter;
 
     // This is only for local scopes, so we assume that varibles not in the stack are from the global scope
     // The boolean indicates if we have finished resolving the initializer.
-    private final Stack<Map<String, Boolean>> scopes = new Stack<>();
+    private final Stack<Map<String, VarStatus>> scopes = new Stack<>();
 
     private FunctionType currentFunction = FunctionType.NONE;
 
@@ -187,14 +200,26 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     // 🌟
     @Override
     public Void visitVariableExpr(Expr.Variable expr) {
-        if (
-            !scopes.isEmpty() &&
-            scopes.peek().get(expr.name.lexeme) == Boolean.FALSE
-        ) {
-            Lox.error(
-                expr.name,
-                "Can't read local variable in its own initializer."
-            );
+        if (!scopes.isEmpty()) {
+            // Checking locals
+            VarStatus varStatus = scopes.peek().get(expr.name.lexeme);
+
+            if (varStatus != null) {
+                if (!varStatus.resolved) {
+                    Lox.error(
+                        expr.name,
+                        "Can't read local variable in its own initializer."
+                    );
+                }
+            }
+
+            for (int i = scopes.size() - 1; i >= 0; i--) {
+                VarStatus varStatus2 = scopes.get(i).get(expr.name.lexeme);
+                if (varStatus2 != null) {
+                    varStatus2.numReferences++;
+                    break;
+                }
+            }
         }
 
         resolveLocal(expr, expr.name);
@@ -244,28 +269,39 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     private void beginScope() {
-        scopes.push(new HashMap<String, Boolean>());
+        scopes.push(new HashMap<String, VarStatus>());
     }
 
     private void endScope() {
+        scopes
+            .peek()
+            .forEach((varName, status) -> {
+                if (status.numReferences == 0) {
+                    Lox.warning(status.varToken, "Unused variable.");
+                }
+            });
+
         scopes.pop();
     }
 
     private void declare(Token name) {
         if (scopes.isEmpty()) return;
 
-        Map<String, Boolean> scope = scopes.peek();
+        Map<String, VarStatus> scope = scopes.peek();
 
         if (scope.containsKey(name.lexeme)) {
             Lox.error(name, "Already a variable with this name in this scope.");
         }
 
-        scope.put(name.lexeme, false);
+        scope.put(name.lexeme, new VarStatus(name));
     }
 
     private void define(Token name) {
         if (scopes.isEmpty()) return;
-        scopes.peek().put(name.lexeme, true);
+        VarStatus status = scopes.peek().get(name.lexeme);
+        if (status != null) {
+            status.resolved = true;
+        }
     }
 
     private void resolveLocal(Expr expr, Token name) {

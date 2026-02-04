@@ -67,6 +67,12 @@ public class Lox {
         //System.out.println(new AstPrinter().print(expression));
         interpreter.interpret(statements);
     }
+    
+    static void warning(Token token, String message) {
+        System.err.println(
+            "[line " + token.line + "] Warning at '" + token.lexeme + "': " + message
+        );
+    }
 
     static void error(int line, String message) {
         report(line, "", message);
