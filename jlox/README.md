@@ -33,7 +33,9 @@ operator → "==" | "!=" | "<" | "<=" | ">" | ">="
 ```
 program          → declaration* EOF ;
 
-declaration      → funDecl | varDecl | statement ;
+declaration      → classDecl | funDecl | varDecl | statement ;
+
+classDecl        → "class" IDENTIFIER "{" function* "}" ;
 
 funDecl          → "fun" function ;
 
@@ -66,7 +68,7 @@ exprStmt         → expression ";" ;
 
 expression       → comma_expression ;
 comma_expression → assignment ( "," assignment )* ;
-assignment       → IDENTIFIER "=" assignment | ternary ;
+assignment       → ( call "." )? IDENTIFIER "=" assignment | ternary ;
 ternary          → logic_or ( "?" expression ":" ternary )? ;
 logic_or         → logic_and ( "or" logic_and )* ;
 logic_and        → equality ( "and" equality )* ;
@@ -75,7 +77,7 @@ comparison       → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term             → factor ( ( "-" | "+" ) factor )* ;
 factor           → unary ( ( "/" | "*" ) unary )* ;
 unary            → ( "!" | "-" ) unary | call ;
-call             → primary ( "(" arguments? ")" )* ;
+call             → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 primary          → "true" | "false" | "nil"
                   | NUMBER | STRING
                   | "(" expression ")"
