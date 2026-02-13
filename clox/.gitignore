@@ -1,0 +1,30 @@
+# --- Build Artifacts ---
+# Object files (intermediate compilation)
+*.o
+*.obj
+
+# Executables
+# This matches the TARGET name in your Makefile
+clox
+clox.exe
+
+# Default output if you run gcc without -o
+a.out
+
+# --- Debugging ---
+# macOS debug symbols folder
+*.dSYM/
+# Core dumps (created when C crashes hard)
+core
+
+# --- OS System Files ---
+.DS_Store
+Thumbs.db
+
+# --- Editors/IDEs ---
+# VS Code settings (optional: you might want to commit launch.json, but usually not local workspace settings)
+.vscode/
+
+# CLion / IntelliJ
+.idea/
+cmake-build-debug/
