@@ -1,0 +1,22 @@
+class Doughnut {
+  cook() {
+    var a = 0;
+    print "Fry until golden brown.";
+  }
+  
+  eat() {
+    print "eating a delicious generic doughnut";
+  }
+}
+
+class BostonCream < Doughnut {
+    eat(name) {
+     super.cook();
+     print name + " is eating a delicious boston cream";
+    }
+}
+
+{var b;}
+BostonCream().cook();
+Doughnut().eat();
+BostonCream().eat("John");

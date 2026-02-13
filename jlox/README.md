@@ -35,7 +35,7 @@ program          → declaration* EOF ;
 
 declaration      → classDecl | funDecl | varDecl | statement ;
 
-classDecl        → "class" IDENTIFIER "{" function* "}" ;
+classDecl        → "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}" ;
 
 funDecl          → "fun" function ;
 
@@ -82,7 +82,8 @@ primary          → "true" | "false" | "nil"
                   | NUMBER | STRING
                   | "(" expression ")"
                   | IDENTIFIER
-                  | anonFunction ;
+                  | anonFunction
+                  | "super" "." IDENTIFIER ;
 anonFunction     → "fun" "(" parameters? ")" block ;
                   
 arguments        → assignment ( "," assignment )* ;
