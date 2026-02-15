@@ -1,0 +1,9 @@
+# clox
+
+## OPCODES
+
+[ OP_CONSTANT (1) ] [ CONSTANT_IDX (1) ]
+
+[ OP_CONSTANT_LONG (1) ] [ CONSTANT_IDX (3) ]
+
+[ OP_RETURN  (1) ]
