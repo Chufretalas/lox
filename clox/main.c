@@ -1,40 +1,51 @@
+#include <stdio.h>
+#include <time.h>
+
 #include "common.h"
 #include "chunk.h"
 #include "debug.h"
 #include "vm.h"
 
-
 int main(int argc, const char* argv[]) {
     initVM();
-
     Chunk chunk;
     initChunk(&chunk);
 
-    // for (int i = 0; i < 256; i++) {
-    //     writeConstant(&chunk, i, 1);
-    // }
+    printf("Generating benchmark bytecode...\n");
+
+    int constIdx1 = addConstant(&chunk, 1.2);
+    int constIdx2 = addConstant(&chunk, 3.4);
+    int constIdx3 = addConstant(&chunk, 5.6);
+
+    int iterations = 1;
     
-    // writeConstant(&chunk, 300.25, 3);
-    // writeConstant(&chunk, 88.25, 3);
-    // writeConstant(&chunk, 39.21, 2);
+    for (int i = 0; i < iterations; i++) {
+        writeConstant(&chunk, 1.2, 1);
+        writeConstant(&chunk, 3.4, 1);
+        writeChunk(&chunk, OP_ADD, 1);
 
-    // -((1.2 + 3.4) / 5.6)
-    writeConstant(&chunk, 1.2, 2);
-    writeConstant(&chunk, 3.4, 100);
-    writeChunk(&chunk, OP_ADD, 123);
+        writeConstant(&chunk, 5.6, 1);
 
-    writeConstant(&chunk, 5.6, 123);
-    writeChunk(&chunk, OP_DIVIDE, 123);
+        writeChunk(&chunk, OP_DIVIDE, 1);
 
-    writeChunk(&chunk, OP_NEGATE, 123);
+        writeChunk(&chunk, OP_NEGATE, 1);
+    }
 
-    writeChunk(&chunk, OP_RETURN, 2);
+    writeChunk(&chunk, OP_RETURN, 1);
 
-    disassembleChunk(&chunk, "test chunk");
+    printf("Benchmarking %d iterations...\n", iterations);
+    
+    clock_t start = clock();
     interpret(&chunk);
+    clock_t end = clock();
+
+    double cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    
+    printf("\n--- Results ---\n");
+    printf("Time taken: %.4f seconds\n", cpu_time_used);
+    printf("Ops per sec: %.2f million\n", iterations / cpu_time_used / 1000000.0);
 
     freeVM();
-
     freeChunk(&chunk);
     return 0;
 }

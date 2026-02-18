@@ -4,7 +4,7 @@
 #include "chunk.h"
 #include "value.h"
 
-#define STACK_MAX 512
+#define STACK_MAX 4096
 
 typedef struct {
   Chunk* chunk;
